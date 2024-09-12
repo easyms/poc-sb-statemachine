@@ -2,8 +2,10 @@ package easyms.statemachine;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.statemachine.action.Action;
 import org.springframework.statemachine.config.EnableStateMachine;
+import org.springframework.statemachine.config.EnableStateMachineFactory;
 import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
@@ -13,6 +15,8 @@ import org.springframework.statemachine.persist.StateMachineRuntimePersister;
 
 @Configuration
 @EnableStateMachine
+@EnableStateMachineFactory
+@EnableJpaRepositories(basePackageClasses = StateMachineEntity.class)
 public class StateMachineConfig extends StateMachineConfigurerAdapter<States, Events> {
 
     @Override
