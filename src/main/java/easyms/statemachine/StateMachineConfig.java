@@ -14,9 +14,7 @@ import org.springframework.statemachine.data.jpa.JpaStateMachineRepository;
 import org.springframework.statemachine.persist.StateMachineRuntimePersister;
 
 @Configuration
-@EnableStateMachine
 @EnableStateMachineFactory
-@EnableJpaRepositories(basePackageClasses = StateMachineEntity.class)
 public class StateMachineConfig extends StateMachineConfigurerAdapter<States, Events> {
 
     @Override

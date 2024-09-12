@@ -4,6 +4,7 @@ package easyms.statemachine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineFactory;
+import org.springframework.statemachine.data.jpa.JpaStateMachineRepository;
 import org.springframework.statemachine.persist.StateMachineRuntimePersister;
 import org.springframework.stereotype.Service;
 
@@ -18,30 +19,31 @@ public class StateMachineService {
     @Autowired
     private StateMachineRuntimePersister<States, Events, String> stateMachineRuntimePersister;
 
+
     @Autowired
-    private StateMachineRepository stateMachineRepository;
+    private JpaStateMachineRepository jpaStateMachineRepository;  // Provided by Spring State Machine
+
+
+
+    private String buildStateMachineId(Long conductId, LocalDate valueDate) {
+        return conductId + "_" + valueDate.toString();
+    }
 
     public StateMachine<States, Events> acquireStateMachine(Long conductId, LocalDate valueDate) {
-        String stateMachineId = getStateMachineId(conductId, valueDate);
-        StateMachineEntity entity = stateMachineRepository.findByConductIdAndValueDate(conductId, valueDate);
+        String machineId = buildStateMachineId(conductId, valueDate);
+        // Step 1: Get the state machine from the factory (initial state)
+        StateMachine<States, Events> stateMachine = stateMachineFactory.getStateMachine(machineId);
 
-        if (entity == null) {
-            entity = new StateMachineEntity();
-            entity.setConductId(conductId);
-            entity.setValueDate(valueDate);
-            entity.setStateMachineId(stateMachineId);
-            stateMachineRepository.save(entity);
-        }
-
-        StateMachine<States, Events> stateMachine = stateMachineFactory.getStateMachine(stateMachineId);
+        // Step 2: Attach the runtime persister to restore the persisted state if it exists
         stateMachine.getStateMachineAccessor()
                 .doWithAllRegions(access -> access.addStateMachineInterceptor(stateMachineRuntimePersister.getInterceptor()));
+
+        // Step 3: Start the state machine, which triggers the persister to restore the state
         stateMachine.start();
+
         return stateMachine;
     }
 
-    private String getStateMachineId(Long conductId, LocalDate valueDate) {
-        return conductId + "_" + valueDate.toString();
-    }
+
 }
 
